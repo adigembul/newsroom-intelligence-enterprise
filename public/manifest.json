@@ -1,0 +1,13 @@
+{
+  "name": "Newsroom Intelligence Enterprise",
+  "short_name": "NewsIntel",
+  "description": "Aplikasi realtime untuk jurnalis: login demo/full, monitoring isu, sentimen, viral trend, cek hoaks, AI Insight & AI Tools, 5W+1H, dan report enterprise.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#f8fafc",
+  "orientation": "any",
+  "icons": [
+    { "src": "/logo-newsroom.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#f8fafc" />
+  <title>Newsroom Intelligence Enterprise</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/logo-newsroom.png" type="image/png" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="auth-pending">
+  <section id="loginScreen" class="login-screen" aria-label="Login aplikasi">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-logo image-logo login-logo"><img src="/logo-newsroom.png" alt="Newsroom Intelligence" /></div>
+        <div>
+          <p class="eyebrow">Secure newsroom access</p>
+          <h1>Newsroom Intelligence</h1>
+          <p>Masuk ke ruang kerja redaksi untuk monitoring isu, audience insights, report, cek hoaks, dan integrasi AI Tools.</p>
+        </div>
+      </div>
+      <form id="loginForm" class="login-form">
+        <label>Password akses
+          <div class="password-wrap">
+            <input id="loginPassword" type="password" autocomplete="current-password" required />
+            <button type="button" class="reveal-btn" data-target="loginPassword" aria-label="Tampilkan password">👁</button>
+          </div>
+        </label>
+        <label class="check"><input id="rememberLogin" type="checkbox" checked /> Ingat login di browser ini</label>
+        <button class="primary btn-gradient-blue" type="submit">Masuk Aplikasi</button>
+        <p id="loginMessage" class="muted small-note"></p>
+      </form>
+    </div>
+  </section>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand logo-only-brand" aria-label="Logo aplikasi">
+        <div class="brand-logo image-logo side-logo"><img src="/logo-newsroom.png" alt="Newsroom Intelligence" /></div>
+      </div>
+      <nav class="nav" aria-label="Menu utama">
+        <button class="active" data-tab="dashboard">Audience Insights</button>
+        <button data-tab="trends">Trend Terkini</button>
+        <button data-tab="monitor">Aliran Realtime</button>
+        <button data-tab="report">Reports & Data</button>
+        <button data-tab="rekomendasi">Rekomendasi</button>
+        <button data-tab="rilis">5W+1H Builder</button>
+        <button data-tab="hoax">Hoax Check</button>
+        <button data-tab="converter">Sources / Import</button>
+        <button data-tab="hints">Workflow Hints</button>
+        <button data-tab="settings">AI Models & Settings</button>
+      </nav>
+      <div class="side-card social-source-card">
+        <p class="eyebrow">Social Sources</p>
+        <label><span class="source-dot fb">f</span> Facebook <input type="checkbox" checked /></label>
+        <label><span class="source-dot x">𝕏</span> X (Twitter) <input type="checkbox" checked /></label>
+        <label><span class="source-dot th">◎</span> Threads <input type="checkbox" checked /></label>
+        <label><span class="source-dot yt">▶</span> YouTube <input type="checkbox" checked /></label>
+        <label><span class="source-dot tk">♪</span> TikTok <input type="checkbox" checked /></label>
+        <label><span class="source-dot ig">◎</span> Instagram <input type="checkbox" checked /></label>
+        <label><span class="source-dot in">in</span> LinkedIn <input type="checkbox" checked /></label>
+        <button class="ghost mini switch add-source-btn" data-tab="monitor">+ Add Source</button>
+      </div>
+      <div class="side-card status-mini">
+        <span class="pulse" id="pulse"></span>
+        <div>
+          <strong id="serverStatus">Checking server...</strong>
+          <small id="lastSync">Belum sinkron</small>
+          <small id="licenseExpiry">Sesi belum aktif</small>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar enterprise-topbar">
+        <div class="topbrand logo-only-topbrand topbar-menu-only" aria-label="Menu CMS">
+          <button class="icon-btn" aria-label="Menu">☰</button>
+        </div>
+        <label class="global-search" aria-label="Global search">
+          <span>⌕</span>
+          <input id="globalSearch" placeholder="Search stories, topics, sources, people..." />
+          <kbd>⌘ K</kbd>
+        </label>
+        <div class="top-realtime-clock" id="realtimeClock" aria-label="Waktu dan tanggal realtime">
+          <span id="clockTime">--:--:--</span>
+          <small id="clockDate">Memuat tanggal...</small>
+        </div>
+        <div class="top-actions top-icons">
+          <button class="ghost" id="installBtn" hidden>Install PWA</button>
+          <span class="license-pill" id="licensePill">Belum login</span>
+          <button class="icon-btn" id="notificationBtn" title="Notifications" aria-expanded="false">🔔<i id="notificationBadge">3</i></button>
+          <button class="icon-btn" id="helpBtn" title="Help" aria-expanded="false">?</button>
+          <button class="theme-toggle" id="themeToggle" aria-label="Ganti tema"><span>☀️</span><b>Light</b></button>
+          <button class="ghost mini" id="logoutBtn">Logout</button>
+          <div class="user-pill"><span id="profileDisplayName">Alex Morgan</span><small id="profileDisplayRole">Editor-in-Chief</small></div>
+        </div>
+      </header>
+
+      <div class="top-popover hidden" id="notificationPanel" role="dialog" aria-label="Pusat notifikasi">
+        <div class="popover-head"><strong>Notifikasi Redaksi</strong><button class="icon-tool" id="closeNotificationPanel" type="button">×</button></div>
+        <div id="notificationList" class="popover-list"></div>
+        <div class="button-row popover-actions"><button class="ghost mini" id="markNotificationsRead" type="button">Tandai sudah dibaca</button><button class="primary mini btn-gradient-blue switch" data-tab="report" type="button">Buka Report</button></div>
+      </div>
+      <div class="top-popover help-popover hidden" id="helpPanel" role="dialog" aria-label="Bantuan aplikasi">
+        <div class="popover-head"><strong>Bantuan Cepat</strong><button class="icon-tool" id="closeHelpPanel" type="button">×</button></div>
+        <ol class="help-list">
+          <li><b>Scan isu</b> dari Dashboard atau Aliran Realtime.</li>
+          <li><b>Filter data</b> berdasarkan sumber, sentimen, keyword, dan urutan viral/engagement.</li>
+          <li><b>Ekspor report</b> PDF, XLSX, CSV, atau HTML untuk rapat humas/redaksi.</li>
+          <li><b>Superadmin</b> dapat membuat password demo 3 hari dan paket 7/30/60/90 hari/1 tahun.</li>
+        </ol>
+        <button class="primary mini btn-gradient-green switch" data-tab="hints" type="button">Buka Workflow Hints</button>
+      </div>
+
+      <section id="dashboard" class="tab active audience-view audience-pro">
+        <div class="audience-toolbar pro-breadcrumb">
+          <div>
+            <div class="breadcrumb-line"><span>Insights</span><b>›</b><span>Audience Insights</span><b>›</b><strong id="audienceQueryLabel">#Indonesia</strong></div>
+            <h2>Audience Insights <em>#Indonesia</em></h2>
+            <p>Real-time analysis of public conversations, trend clusters, sentiment, and key audience segments around this topic.</p>
+          </div>
+          <div class="toolbar-controls">
+            <div class="quick-form compact-scan">
+              <input id="quickQuery" value="Indonesia" placeholder="Cari isu, tokoh, lembaga, atau keyword" />
+              <button class="primary btn-gradient-coral" id="quickRun">Run Scan</button>
+            </div>
+            <label class="range-picker mini-range">Durasi data
+              <select id="searchDuration" class="duration-select" aria-label="Durasi pencarian data">
+                <option value="1">1 hari</option>
+                <option value="3">3 hari</option>
+                <option value="7" selected>7 hari</option>
+                <option value="14">14 hari</option>
+                <option value="30">30 hari</option>
+                <option value="60">60 hari</option>
+                <option value="90">90 hari</option>
+                <option value="120">120 hari</option>
+                <option value="360">360 hari</option>
+              </select>
+            </label>
+            <button class="ghost mini switch" data-tab="report">Filters</button>
+            <button class="primary mini btn-gradient-blue switch" data-tab="report">Export</button>
+          </div>
+        </div>
+
+        <div class="audience-workspace">
+          <section class="audience-main-column">
+            <div class="audience-insight-shell pro-map-shell">
+              <section class="audience-map-panel">
+                <div class="panel-head slim">
+                  <div><p class="eyebrow">Audience conversation map</p><h3>Conversation & Segment Graph</h3></div>
+                  <div class="map-actions"><button class="icon-tool" id="clusterReset" title="Reset graph view">⌘</button><button class="icon-tool" id="clusterFocus" title="Focus graph">◉</button><button class="icon-tool switch" data-tab="settings" id="clusterSettings" title="Open settings">⚙</button></div>
+                </div>
+                <canvas id="clusterChart" width="1120" height="520" aria-label="Grafik cluster percakapan"></canvas>
+                <div class="map-zoom"><button id="clusterZoomIn" type="button" title="Zoom in">+</button><button id="clusterZoomOut" type="button" title="Zoom out">−</button><button id="clusterFullscreen" type="button" title="Fullscreen">⛶</button></div>
+              </section>
+
+              <aside class="audience-detail-panel insight-summary-card">
+                <div class="detail-block audience-overview-row">
+                  <div><small>Total Mentions</small><strong id="dashTotal">0</strong><span>▲ 24.6%</span></div>
+                  <div><small>Dominan</small><strong id="dashSentiment">-</strong><span>▲ 18.3%</span></div>
+                  <div><small>Alert</small><strong id="dashAlert">-</strong><span>▲ 12.1%</span></div>
+                  <div><small>Top viral</small><strong id="kpiViral">0</strong><span>viral score</span></div>
+                </div>
+
+                <div class="detail-block social-metrics-panel">
+                  <p class="eyebrow">Social media metrics</p>
+                  <div class="social-metrics-grid">
+                    <div><small>Likes</small><strong id="socialLikes">0</strong></div>
+                    <div><small>Comments</small><strong id="socialComments">0</strong></div>
+                    <div><small>Shares</small><strong id="socialShares">0</strong></div>
+                    <div><small>Views</small><strong id="socialViews">0</strong></div>
+                  </div>
+                  <p class="muted tiny">Data berasal dari field metrics dataset Apify/Social X/ekspor scraper atau API publik yang tersedia.</p>
+                </div>
+                <div class="detail-block">
+                  <p class="eyebrow">Top influencers</p>
+                  <div id="insightCards" class="influencer-list">
+                    <div><strong>Top topic</strong><span>-</span></div>
+                    <div><strong>Top source</strong><span>-</span></div>
+                    <div><strong>Sentiment shift</strong><span>-</span></div>
+                    <div><strong>Editor action</strong><span>Run scan</span></div>
+                  </div>
+                  <a class="detail-link switch" data-tab="report" href="javascript:void(0)">View all insights →</a>
+                </div>
+                <div class="detail-block audience-demo">
+                  <p class="eyebrow">Audience demographics</p>
+                  <canvas id="audienceDonut" width="360" height="170" aria-label="Audience demographics"></canvas>
+                  <div class="top-country-list"><span>United States <b>28.6%</b></span><span>Indonesia <b>14.2%</b></span><span>United Kingdom <b>9.8%</b></span><span>Canada <b>6.7%</b></span></div>
+                </div>
+              </aside>
+            </div>
+
+            <div class="audience-segment-grid pro-segments" id="audienceSegments">
+              <article class="segment-card red"><div class="seg-head"><strong>Sentimen Positif</strong><span>⋮</span></div><div class="seg-body segment-dynamic"><div class="mini-ring" style="--p:65"><span id="kpiPos">0%</span></div><div class="seg-stats"><p><b id="kpiPosCount">0 mention</b> positif</p><p>Engagement 6.43%</p><p>Reach 845.2M</p></div><div class="seg-persona"><strong>Top voices</strong><span>Menunggu data real</span></div></div></article>
+              <article class="segment-card blue"><div class="seg-head"><strong>Sentimen Netral</strong><span>⋮</span></div><div class="seg-body segment-dynamic"><div class="mini-ring" style="--p:40"><span id="kpiNeu">0%</span></div><div class="seg-stats"><p><b id="kpiNeuCount">0 mention</b> netral</p><p>Engagement 4.92%</p><p>Reach 724.1M</p></div><div class="seg-persona"><strong>Top voices</strong><span>Menunggu data real</span></div></div></article>
+              <article class="segment-card green"><div class="seg-head"><strong>Keyword Dominan</strong><span>⋮</span></div><div class="seg-body"><div id="keywordChips" class="chips empty">Belum ada data.</div><p>Keyword dan isu tren dari data real.</p></div></article>
+              <article class="segment-card orange"><div class="seg-head"><strong>Rekomendasi Redaksi</strong><span>⋮</span></div><div class="seg-body"><div id="sourceChips" class="chips empty">Belum ada data.</div><ol id="recommendations" class="recommend-list"><li>Jalankan scan terlebih dahulu.</li></ol></div></article>
+              <article class="segment-card purple"><div class="seg-head"><strong>Sentimen Negatif</strong><span>⋮</span></div><div class="seg-body segment-dynamic"><div class="mini-ring" style="--p:13"><span id="kpiNeg">0%</span></div><div class="seg-stats"><p><b id="kpiNegCount">0 mention</b> negatif</p><p>Engagement 3.12%</p><p>Reach 301.2M</p></div><div class="seg-persona"><strong>Editorial action</strong><span>Cek hoaks dan verifikasi sumber primer.</span></div></div></article>
+            </div>
+
+            <section class="panel reports-embedded">
+              <div class="panel-head"><div><p class="eyebrow">Reports & Data</p><h3>Searchable report and sentiment list</h3></div><span class="badge">Rows/page 10</span></div>
+              <div class="data-tools compact-tools">
+                <input id="audienceSearch" placeholder="Search reports, keywords, accounts, or text..." />
+                <select id="audienceSourceFilter"><option value="all">All Sources</option></select>
+                <select id="audienceSentimentFilter"><option value="all">All Sentiment</option><option value="positif">Positive</option><option value="netral">Neutral</option><option value="negatif">Negative</option></select>
+                <select id="audienceSort"><option value="latest">Sort: Latest</option><option value="viral">Viral score</option><option value="engagement">Engagement</option><option value="source">Source A-Z</option></select>
+              </div>
+              <div class="table-wrap"><table><thead><tr><th>#</th><th>Report / Content</th><th>Source</th><th>Author</th><th>Sentiment</th><th>Engagement</th><th>Reach</th><th>Date</th></tr></thead><tbody id="audienceReportTable"><tr><td colspan="8">Belum ada data</td></tr></tbody></table></div>
+              <div id="audienceReportPager" class="pager"></div>
+            </section>
+          </section>
+
+          <aside class="audience-right-rail">
+            <section class="rail-card sentiment-rail"><div class="panel-head slim"><h3>Sentiment Overview</h3><span>⋮</span></div><canvas id="sentimentChart" width="420" height="260" aria-label="Chart sentimen"></canvas><div id="sentimentLegend" class="chart-legend-stack"></div></section>
+            <section class="rail-card timeline-rail"><div class="panel-head slim"><h3>Mentions Over Time</h3><div class="tiny-tabs"><button>Hourly</button><button class="active">Daily</button></div></div><canvas id="timelineChart" width="420" height="250" aria-label="Chart timeline"></canvas><div id="timelineSummary" class="chart-summary-strip"></div></section>
+            <section class="rail-card"><div class="panel-head slim"><h3>Top Sources</h3><span>Mentions</span></div><div id="railSourceBars" class="source-bars"><p class="muted">Belum ada data</p></div></section>
+            <section class="rail-card ai-floating-panel">
+              <div class="panel-head slim"><h3>AI Model Settings</h3><button class="icon-tool">×</button></div>
+              <div class="ai-lock-banner" data-ai-lock><strong>🔒 AI Settings terkunci</strong><span>Masukkan password superadmin untuk mengubah model.</span><button class="ghost mini" type="button" data-open-ai-unlock>Unlock</button></div>
+              <label>Select AI Model
+                <select id="dashSumopodModel">
+                  <option value="claude-opus-4-8">claude-opus-4-8</option>
+                  <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+                  <option value="gemini">gemini</option>
+                  <option value="kimi">kimi</option>
+                  <option value="mimo-v2.5-pro">mimo-v2.5-pro</option>
+                  <option value="qwen">qwen</option>
+                  <option value="custom">Custom model...</option>
+                </select>
+              </label>
+              <label id="dashCustomModelWrap" class="custom-model-wrap hidden">Custom Model
+                <input id="dashSumopodCustomModel" placeholder="contoh: model-private-v1" />
+              </label>
+              <div class="button-row"><button id="dashSaveModel" class="primary btn-gradient-blue">Save Changes</button><button class="ghost switch" data-tab="settings">Full Settings</button></div>
+            </section>
+          </aside>
+        </div>
+
+        <div class="social-pills audiense-source-tabs" aria-label="Pilihan sumber sosial media">
+          <button class="active" data-source-view="all">All Sources</button>
+          <button data-source-view="facebook">Facebook</button>
+          <button data-source-view="x">X</button>
+          <button data-source-view="threads">Threads</button>
+          <button data-source-view="youtube">YouTube</button>
+          <button data-source-view="tiktok">TikTok</button>
+          <button data-source-view="instagram">Instagram</button>
+          <button data-source-view="linkedin">LinkedIn</button>
+        </div>
+      </section>
+
+
+      <section id="trends" class="tab">
+        <div class="trend-radar-wrap">
+          <section class="panel trend-radar-hero">
+            <div>
+              <p class="eyebrow">Trend & Issue Radar</p>
+              <h2>Rujukan Manajemen Isu Nasional & Internasional</h2>
+              <p class="muted">Ambil isu terkini dari sumber RSS publik/Google News dan GDELT, lalu gunakan sebagai bahan monitoring, agenda setting, dan deteksi awal krisis.</p>
+            </div>
+            <div class="trend-controls">
+              <label>Durasi data
+                <select id="trendDuration" class="duration-select">
+                  <option value="1">1 hari</option><option value="3">3 hari</option><option value="7" selected>7 hari</option><option value="14">14 hari</option><option value="30">30 hari</option><option value="60">60 hari</option><option value="90">90 hari</option><option value="120">120 hari</option><option value="360">360 hari</option>
+                </select>
+              </label>
+              <button class="primary btn-gradient-orange" id="fetchIssueTrends" type="button">Ambil Tren Terkini</button>
+            </div>
+          </section>
+          <div class="trend-radar-grid">
+            <section class="panel trend-column"><div class="panel-head"><div><p class="eyebrow">Nasional</p><h3>Isu Indonesia Terkini</h3></div><span class="badge">Google News / RSS</span></div><div id="nationalTrends" class="trend-list"><p class="muted">Klik Ambil Tren Terkini.</p></div></section>
+            <section class="panel trend-column"><div class="panel-head"><div><p class="eyebrow">Internasional</p><h3>Global Issue Watch</h3></div><span class="badge">Global</span></div><div id="internationalTrends" class="trend-list"><p class="muted">Klik Ambil Tren Terkini.</p></div></section>
+            <section class="panel trend-column"><div class="panel-head"><div><p class="eyebrow">Manajemen isu</p><h3>Prioritas Monitoring</h3></div><span class="badge warn">Actionable</span></div><div id="trendRecommendations" class="trend-list"><p class="muted">Rekomendasi muncul setelah tren diambil.</p></div></section>
+          </div>
+        </div>
+      </section>
+
+      <section id="monitor" class="tab">
+        <div class="panel control-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">Realtime API</p><h3>Aliran Realtime</h3></div>
+            <span class="badge good">Multi-source monitoring</span>
+          </div>
+          <div class="form-grid monitor-form">
+            <label>Query isu<input id="rtQuery" value="Indonesia" /></label>
+            <label>Benua / cakupan<select id="geoContinent">
+              <option value="global">Global / semua wilayah</option>
+              <option value="asia">Asia</option>
+              <option value="europe">Eropa</option>
+              <option value="america">Amerika</option>
+              <option value="africa">Afrika</option>
+              <option value="oceania">Oseania</option>
+            </select></label>
+            <label>Wilayah khusus<select id="geoRegion">
+              <option value="">Semua wilayah</option>
+              <option value="asean">ASEAN</option>
+              <option value="middle-east">Middle East</option>
+              <option value="gcc">GCC</option>
+              <option value="east-asia">East Asia</option>
+              <option value="south-asia">South Asia</option>
+              <option value="eu">European Union</option>
+              <option value="north-america">North America</option>
+              <option value="latin-america">Latin America</option>
+            </select></label>
+            <label>Negara fokus<select id="geoCountry">
+              <option value="">Semua negara</option>
+              <option value="Indonesia">Indonesia</option>
+              <option value="Singapore">Singapore</option>
+              <option value="Malaysia">Malaysia</option>
+              <option value="Brunei">Brunei</option>
+              <option value="Thailand">Thailand</option>
+              <option value="Philippines">Philippines</option>
+              <option value="Vietnam">Vietnam</option>
+              <option value="Cambodia">Cambodia</option>
+              <option value="Laos">Laos</option>
+              <option value="Myanmar">Myanmar</option>
+              <option value="Saudi Arabia">Saudi Arabia</option>
+              <option value="United Arab Emirates">United Arab Emirates</option>
+              <option value="Qatar">Qatar</option>
+              <option value="Turkey">Turkey</option>
+              <option value="Egypt">Egypt</option>
+              <option value="United States">United States</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="Japan">Japan</option>
+              <option value="China">China</option>
+              <option value="India">India</option>
+              <option value="Australia">Australia</option>
+            </select></label>
+            <label>Kota fokus<input id="geoCity" list="cityOptions" placeholder="Jakarta, Singapore, Dubai, Tokyo..." /></label>
+            <datalist id="cityOptions">
+              <option value="Jakarta"></option><option value="Bandung"></option><option value="Surabaya"></option><option value="Medan"></option><option value="Singapore"></option><option value="Kuala Lumpur"></option><option value="Bangkok"></option><option value="Manila"></option><option value="Hanoi"></option><option value="Dubai"></option><option value="Doha"></option><option value="Riyadh"></option><option value="Jeddah"></option><option value="Istanbul"></option><option value="Cairo"></option><option value="Tokyo"></option><option value="Seoul"></option><option value="Beijing"></option><option value="Shanghai"></option><option value="New York"></option><option value="London"></option><option value="Paris"></option><option value="Sydney"></option>
+            </datalist>
+            <label>Mode pencarian<select id="searchMode"><option value="fast" selected>Cepat & ringan</option><option value="standard">Standar</option><option value="deep">Lengkap / deep scan</option></select></label>
+
+            <label>Interval polling<select id="rtInterval"><option value="60000" selected>60 detik aman</option><option value="120000">2 menit</option><option value="300000">5 menit</option><option value="30000">30 detik cepat</option></select></label>
+            <label>Durasi pencarian<select id="rtDuration" class="duration-select" aria-label="Durasi pencarian realtime"><option value="1">1 hari</option><option value="3">3 hari</option><option value="7" selected>7 hari</option><option value="14">14 hari</option><option value="30">30 hari</option><option value="60">60 hari</option><option value="90">90 hari</option><option value="120">120 hari</option><option value="360">360 hari</option></select></label>
+            <label>Max per sumber<input id="rtMax" type="number" value="50" min="10" max="100" /></label>
+            <label>Custom RSS URL opsional<input id="rssUrl" placeholder="https://mediaanda.com/rss.xml" /></label>
+          </div>
+          <div class="geo-quick-row" aria-label="Preset wilayah cepat">
+            <button type="button" class="geo-chip" data-geo-continent="asia" data-geo-region="" data-geo-country="Indonesia" data-geo-city="">Indonesia</button>
+            <button type="button" class="geo-chip" data-geo-continent="asia" data-geo-region="asean" data-geo-country="" data-geo-city="">ASEAN</button>
+            <button type="button" class="geo-chip" data-geo-continent="asia" data-geo-region="middle-east" data-geo-country="" data-geo-city="">Middle East</button>
+            <button type="button" class="geo-chip" data-geo-continent="asia" data-geo-region="" data-geo-country="" data-geo-city="">Asia</button>
+            <button type="button" class="geo-chip" data-geo-continent="global" data-geo-region="" data-geo-country="" data-geo-city="Jakarta">Jakarta</button>
+            <button type="button" class="geo-chip" data-geo-continent="asia" data-geo-region="" data-geo-country="Singapore" data-geo-city="Singapore">Singapore</button>
+            <button type="button" class="geo-chip" data-geo-continent="asia" data-geo-region="" data-geo-country="United Arab Emirates" data-geo-city="Dubai">Dubai</button>
+          </div>
+          <p id="geoScopeHint" class="geo-scope-hint">Cakupan: Global / semua wilayah. Pilih benua, kawasan, negara, atau kota agar pencarian lebih spesifik.</p>
+
+          <div class="source-row source-row-expanded">
+            <label><input class="rtSource" type="checkbox" value="gdelt" checked /> GDELT News</label>
+            <label><input class="rtSource" type="checkbox" value="rss" checked /> RSS / Google News RSS</label>
+            <label><input class="rtSource" type="checkbox" value="bluesky" checked /> Bluesky Social</label>
+            <label><input class="rtSource" type="checkbox" value="facebook" /> Facebook</label>
+            <label><input class="rtSource" type="checkbox" value="x" /> X</label>
+            <label><input class="rtSource" type="checkbox" value="threads" /> Threads</label>
+            <label><input class="rtSource" type="checkbox" value="youtube" /> YouTube</label>
+            <label><input class="rtSource" type="checkbox" value="tiktok" /> TikTok</label>
+            <label><input class="rtSource" type="checkbox" value="instagram" /> Instagram</label>
+            <label><input class="rtSource" type="checkbox" value="linkedin" /> LinkedIn</label>
+            <label><input class="rtSource" type="checkbox" value="hackernews" /> Hacker News</label>
+            <label><input class="rtSource" type="checkbox" value="apify" /> Apify Dataset publik</label>
+          </div>
+          <p class="muted small-note">Catatan: GDELT memakai rate-limiter otomatis. Facebook, X, Threads, YouTube, TikTok, Instagram, dan LinkedIn dibaca melalui RSS publik/Google News query atau dataset scraper Apify/Social X yang Anda impor, sehingga data yang masuk tetap nyata, bukan dummy.</p>
+          <div class="form-grid single-line">
+            <label>Dataset ID Apify publik / opsional<input id="rtDataset" placeholder="contoh: abc123datasetid" /></label>
+          </div>
+          <details class="advanced-datasets">
+            <summary>Mapping dataset sosial per platform</summary>
+            <div class="form-grid">
+              <label>Facebook Dataset ID<input id="datasetFacebook" placeholder="Opsional dari Apify/Social X" /></label>
+              <label>X Dataset ID<input id="datasetX" placeholder="Opsional dari Apify/Social X" /></label>
+              <label>Threads Dataset ID<input id="datasetThreads" placeholder="Opsional dari Apify/Social X" /></label>
+              <label>YouTube Dataset ID<input id="datasetYoutube" placeholder="Opsional dari Apify/Social X" /></label>
+              <label>TikTok Dataset ID<input id="datasetTiktok" placeholder="Opsional dari Apify/Social X" /></label>
+              <label>Instagram Dataset ID<input id="datasetInstagram" placeholder="Opsional dari Apify/Social X" /></label>
+              <label>LinkedIn Dataset ID<input id="datasetLinkedin" placeholder="Opsional dari Apify/Social X" /></label>
+            </div>
+          </details>
+          <div class="button-row">
+            <button class="primary btn-gradient-green" id="startRt" type="button" onclick="window.NewsroomApp?.startMonitoringFromUi?.(event)">Start Monitoring</button>
+            <button class="ghost danger" id="stopRt" type="button" onclick="window.NewsroomApp?.stopMonitoring?.(event)">Stop</button>
+            <button class="ghost danger" id="clearStreams" type="button" onclick="window.NewsroomApp?.resetData?.(event)">Reset Data</button>
+          </div>
+          <div class="realtime-status-strip" id="realtimeStatusStrip">
+            <span><b>Status</b><em id="realtimeStatusText">Siap monitoring</em></span>
+            <span><b>Mode</b><em id="realtimeModeText">-</em></span>
+            <span><b>Wilayah</b><em id="realtimeGeoText">Global</em></span>
+            <span><b>Data</b><em id="realtimeDataText">0 item</em></span>
+          </div>
+
+        </div>
+
+        <div class="panel stream-filter-panel">
+          <div class="panel-head"><div><p class="eyebrow">Search, filter & sort scraping result</p><h3>Filter Hasil Scraping / Realtime</h3></div><span class="badge">10 data tiap boks</span></div>
+          <div class="data-tools stream-tools">
+            <input id="streamSearch" placeholder="Cari konten, akun, domain, atau keyword..." />
+            <select id="streamSourceFilter"><option value="all">Semua sumber</option></select>
+            <select id="streamSentimentFilter"><option value="all">Semua sentimen</option><option value="positif">Positif</option><option value="netral">Netral</option><option value="negatif">Negatif</option></select>
+            <select id="streamSort"><option value="latest">Terbaru</option><option value="viral">Viral tertinggi</option><option value="engagement">Engagement</option><option value="source">Sumber A-Z</option></select>
+          </div>
+        </div>
+
+        <div class="streams-grid">
+          <section class="stream-column"><div class="stream-head"><h3>GDELT / RSS News</h3><span id="newsCount">0</span></div><div id="newsStream" class="stream-list"></div><div id="newsPager" class="pager mini-pager"></div></section>
+          <section class="stream-column"><div class="stream-head"><h3>Social / Forum</h3><span id="socialCount">0</span></div><div id="socialStream" class="stream-list"></div><div id="socialPager" class="pager mini-pager"></div></section>
+          <section class="stream-column"><div class="stream-head"><h3>Viral Priority</h3><span id="viralCount">0</span></div><div id="viralStream" class="stream-list"></div><div id="viralPager" class="pager mini-pager"></div></section>
+        </div>
+        <section class="panel"><h3>Realtime Log</h3><div id="rtLog" class="log"></div></section>
+      </section>
+
+      <section id="report" class="tab">
+        <div class="report-cover">
+          <div>
+            <p class="eyebrow">Hootsuite-style report</p>
+            <h2 id="reportTitle">Laporan Monitoring Isu</h2>
+            <p id="reportSubtitle">KPI, sentimen, kecepatan tren, konten utama, domain utama, dan rekomendasi redaksi.</p>
+          </div>
+          <div class="button-row export-actions">
+            <select id="reportDuration" class="duration-select" aria-label="Durasi data report"><option value="1">1 hari</option><option value="3">3 hari</option><option value="7" selected>7 hari</option><option value="14">14 hari</option><option value="30">30 hari</option><option value="60">60 hari</option><option value="90">90 hari</option><option value="120">120 hari</option><option value="360">360 hari</option></select>
+            <select id="reportLanguage" class="export-select" aria-label="Pilih bahasa ekspor report"><option value="id" selected>Bahasa Indonesia</option><option value="en">English</option></select>
+            <select id="reportExportFormat" class="export-select" aria-label="Pilih format ekspor report">
+              <option value="pdf">PDF lengkap</option>
+              <option value="xlsx">XLSX multi-sheet</option>
+              <option value="csv">CSV lengkap</option>
+              <option value="html">HTML report</option>
+            </select>
+            <button class="primary btn-gradient-purple" id="downloadReport">Ekspor Laporan</button><button class="ghost" id="printReport" type="button">Cetak Laporan</button>
+            <button type="button" class="ghost accent" id="sumopodInsight">AI Insight</button>
+            <button class="ghost" id="copySummary">Copy Ringkasan</button>
+          </div>
+        </div>
+
+        <section class="analysis-studio panel" id="analysisStudio">
+          <div class="panel-head studio-head">
+            <div><p class="eyebrow">Professional analysis view</p><h3>Hasil Analisis Media Intelligence</h3><p class="muted">Grafik mengikuti pola report humas: mentions, reach, sentimen, share of voice, kategori sumber, dan akun paling berpengaruh.</p></div>
+            <div class="chart-zoom-controls" aria-label="Kontrol zoom grafik analisa">
+              <button class="ghost mini" data-zoom="in" type="button">Zoom +</button>
+              <button class="ghost mini" data-zoom="out" type="button">Zoom −</button>
+              <button class="ghost mini" data-zoom="reset" type="button">Reset</button>
+            </div>
+          </div>
+          <div class="analysis-kpi-strip">
+            <div><strong id="analysisTotalMentions">0</strong><span>Mentions</span></div>
+            <div class="good"><strong id="analysisPositiveMentions">0</strong><span>Positive mentions</span></div>
+            <div class="bad"><strong id="analysisNegativeMentions">0</strong><span>Negative mentions</span></div>
+          </div>
+          <div class="analysis-infographic-grid">
+            <section class="analysis-card active-sites-card"><h3>Most active sites</h3><div id="analysisActiveSites" class="bubble-sites"><p class="muted">Belum ada data.</p></div></section>
+            <section class="analysis-card active-categories-card"><h3>The most active categories</h3><div id="analysisActiveCategories" class="category-bars"><p class="muted">Belum ada data.</p></div></section>
+            <section class="analysis-card people-card"><h3>The most influential</h3><div id="analysisInfluential" class="mini-people"><p class="muted">Belum ada data.</p></div><h3>The most active</h3><div id="analysisActivePeople" class="mini-people"><p class="muted">Belum ada data.</p></div></section>
+          </div>
+          <div class="analysis-chart-grid">
+            <article class="analysis-chart-card wide"><div class="panel-head slim"><h3>Menyebutkan</h3><span class="badge">zoom aktif</span></div><canvas id="analysisMentionsChart" width="920" height="280"></canvas></article>
+            <article class="analysis-chart-card wide"><div class="panel-head slim"><h3>Jangkauan</h3><span class="badge">reach</span></div><canvas id="analysisReachChart" width="920" height="280"></canvas></article>
+            <article class="analysis-chart-card"><div class="panel-head slim"><h3>Sentimen positif</h3><span class="badge good">Positive</span></div><canvas id="analysisPositiveChart" width="520" height="260"></canvas></article>
+            <article class="analysis-chart-card"><div class="panel-head slim"><h3>Sentimen negatif</h3><span class="badge bad">Negative</span></div><canvas id="analysisNegativeChart" width="520" height="260"></canvas></article>
+            <article class="analysis-chart-card"><div class="panel-head slim"><h3>Berbagi Suara — Jangkauan</h3><span class="badge">Donut</span></div><canvas id="shareReachDonut" width="520" height="260"></canvas></article>
+            <article class="analysis-chart-card"><div class="panel-head slim"><h3>Berbagi Suara — Menyebutkan</h3><span class="badge">Donut</span></div><canvas id="shareMentionDonut" width="520" height="260"></canvas></article>
+            <article class="analysis-chart-card"><div class="panel-head slim"><h3>Rincian sentimen</h3><span class="badge">Stacked</span></div><canvas id="sentimentBreakdownChart" width="520" height="260"></canvas></article>
+            <article class="analysis-chart-card"><div class="panel-head slim"><h3>Kategori berbagi</h3><span class="badge">Source types</span></div><canvas id="categoryShareChart" width="520" height="260"></canvas></article>
+            <article class="analysis-chart-card wide"><div class="panel-head slim"><h3>Source types</h3><span class="badge">Pie high-DPI</span></div><canvas id="sourceTypesChart" width="920" height="260"></canvas></article>
+            <article class="analysis-chart-card wide"><div class="panel-head slim"><h3>Word Cloud / Context of Discussion</h3><span class="badge">Keyword map</span></div><div id="analysisWordCloud" class="wordcloud-box"><p class="muted">Belum ada data.</p></div></article>
+          </div>
+        </section>
+
+        <div class="report-grid">
+          <section class="report-tile wide"><div class="panel-head"><h3>Executive Summary</h3><span id="reportDate" class="badge">-</span></div><div id="execSummary" class="summary-box">Belum ada data. Jalankan realtime scan atau upload dataset.</div></section>
+          <section class="report-tile sov-tile"><h3>Share of Voice</h3><canvas id="sovChart" width="520" height="372"></canvas></section>
+          <section class="report-tile"><h3>Top Domains</h3><div id="domainList" class="rank-list"></div></section>
+          <section class="report-tile"><h3>Top Authors / Accounts</h3><div id="authorList" class="rank-list"></div></section>
+          <section class="report-tile wide"><div class="panel-head"><h3>Word Cloud & Konteks Data</h3><span class="badge">keyword relevance</span></div><div id="reportWordCloud" class="wordcloud-box compact"><p class="muted">Belum ada data.</p></div><p id="reportKeywordReason" class="muted small-note"></p></section>
+          <section class="report-tile wide"><div class="panel-head"><h3>Top Viral Content</h3><span class="badge">Prioritas follow-up</span></div><div class="table-wrap"><table><thead><tr><th>Sumber</th><th>Sentimen</th><th>Viral</th><th>Konten</th><th>Link</th></tr></thead><tbody id="viralTable"><tr><td colspan="5">Belum ada data</td></tr></tbody></table></div></section>
+          <section class="report-tile wide data-browser">
+            <div class="panel-head"><div><p class="eyebrow">Search, filter & sorting</p><h3>Report & Sentiment Data List</h3></div><span class="badge">10 data/halaman</span></div>
+            <div class="data-tools">
+              <input id="reportSearch" placeholder="Cari report, keyword, akun, domain, atau teks..." />
+              <select id="reportSourceFilter"><option value="all">Semua sumber</option></select>
+              <select id="reportSentimentFilter"><option value="all">Semua sentimen</option><option value="positif">Positif</option><option value="netral">Netral</option><option value="negatif">Negatif</option></select>
+              <select id="reportSort"><option value="latest">Terbaru</option><option value="viral">Viral tertinggi</option><option value="engagement">Engagement</option><option value="source">Sumber A-Z</option></select>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>#</th><th>Source</th><th>Author</th><th>Sentimen</th><th>Viral</th><th>Headline / Content</th><th>Date</th></tr></thead><tbody id="reportDataTable"><tr><td colspan="7">Belum ada data</td></tr></tbody></table></div>
+            <div id="reportPager" class="pager"></div>
+          </section>
+        </div>
+      </section>
+
+
+      <section id="rekomendasi" class="tab">
+        <div class="recommendation-channel">
+          <div class="recommendation-hero panel">
+            <div>
+              <p class="eyebrow">Kanal Rekomendasi Khusus</p>
+              <h2>Solusi & Langkah Tindak Lanjut dari Hasil Analisa</h2>
+              <p id="recommendationIntro" class="muted">Jalankan scan atau upload dataset untuk membuat rekomendasi yang detail, praktis, dan siap dijalankan tim humas/redaksi.</p>
+            </div>
+            <div class="recommendation-actions">
+              <span class="badge" id="recommendationDurationBadge">Durasi 7 hari</span>
+              <button class="primary btn-gradient-orange switch" data-tab="report" type="button">Lihat Report</button>
+            </div>
+          </div>
+          <div class="recommendation-grid">
+            <section class="panel recommendation-panel"><div class="panel-head"><div><p class="eyebrow">Prioritas 24 jam</p><h3>Aksi Cepat</h3></div><span class="badge bad" id="recommendationRiskBadge">Belum ada data</span></div><div id="recommendationQuickActions" class="recommendation-list"><p class="muted">Belum ada data.</p></div></section>
+            <section class="panel recommendation-panel"><div class="panel-head"><div><p class="eyebrow">Strategi konten</p><h3>Solusi Narasi & Distribusi</h3></div><span class="badge good">Praktis</span></div><div id="recommendationContentPlan" class="recommendation-list"><p class="muted">Belum ada data.</p></div></section>
+            <section class="panel recommendation-panel"><div class="panel-head"><div><p class="eyebrow">Monitoring lanjutan</p><h3>Checklist Tim</h3></div><span class="badge">7 langkah</span></div><div id="recommendationChecklist" class="checklist-grid"><p class="muted">Belum ada data.</p></div></section>
+            <section class="panel recommendation-panel wide-recommendation"><div class="panel-head"><div><p class="eyebrow">Action plan</p><h3>Matriks Solusi Detail</h3></div><span class="badge">Humas profesional</span></div><div class="table-wrap"><table><thead><tr><th>Prioritas</th><th>Masalah / Peluang</th><th>Solusi</th><th>Langkah Detail</th><th>Target</th></tr></thead><tbody id="recommendationMatrix"><tr><td colspan="5">Belum ada data.</td></tr></tbody></table></div></section>
+          </div>
+        </div>
+      </section>
+
+      <section id="rilis" class="tab">
+        <div class="grid-2">
+          <form id="releaseForm" class="panel form-panel">
+            <div class="panel-head"><div><p class="eyebrow">News writing assistant</p><h3>Generator Rilis 5W+1H</h3></div><span class="badge">Editorial</span></div>
+            <label>Judul opsional<input name="title" placeholder="Kosongkan agar dibuat otomatis" /></label>
+            <label>What / Apa<textarea name="what" required placeholder="Apa peristiwa atau isu utamanya?"></textarea></label>
+            <label>Who / Siapa<textarea name="who" required placeholder="Siapa pihak terlibat / narasumber?"></textarea></label>
+            <div class="form-grid"><label>Where / Di mana<input name="where" required placeholder="Lokasi" /></label><label>When / Kapan<input name="when" required placeholder="Tanggal/waktu" /></label></div>
+            <label>Why / Mengapa<textarea name="why" required placeholder="Mengapa penting bagi publik?"></textarea></label>
+            <label>How / Bagaimana<textarea name="how" required placeholder="Bagaimana kronologi / prosesnya?"></textarea></label>
+            <label>Kutipan narasumber<textarea name="quote" placeholder="Opsional"></textarea></label>
+            <label>Narahubung<input name="contact" placeholder="Nama, telepon, email" /></label>
+            <button class="primary btn-gradient-green" type="submit">Buat Rilis</button>
+          </form>
+
+          <section class="panel form-panel ai-writer-panel">
+            <div class="panel-head"><div><p class="eyebrow">AI content optimizer</p><h3>AI Generate Rilis, Rewrite, SEO, AEO & GEO</h3></div><span class="badge good">AI Tools</span></div>
+            <label>Mode AI<select id="aiWriterMode">
+              <option value="release">Buat rilis dari data monitoring</option>
+              <option value="rewrite">Rewrite berita agar lebih optimal</option>
+              <option value="seo">Optimasi SEO, AEO, GEO</option>
+            </select></label>
+            <label>Sumber konten<textarea id="aiWriterInput" placeholder="Tempel berita lama, catatan 5W+1H, atau kosongkan agar AI memakai data monitoring terakhir."></textarea></label>
+            <div class="form-grid"><label>Keyword utama<input id="aiWriterKeyword" placeholder="Contoh: Gen Z, MBG, Jakarta" /></label><label>Target audiens<input id="aiWriterAudience" placeholder="Media, publik, manajemen, investor" /></label></div>
+            <div class="button-row"><button class="primary btn-gradient-purple" id="runAiWriter" type="button">Generate AI Content</button><button class="ghost" id="copyAiWriter" type="button">Copy Output</button></div>
+            <div class="hint-card"><strong>Output:</strong> 5 pilihan judul, rilis/berita optimal, meta description, slug, FAQ AEO, entitas GEO, hashtag, angle distribusi, dan rekomendasi editor.<br><strong>Catatan:</strong> AI membutuhkan waktu 20-90 detik tergantung model. Jika API eksternal timeout, aplikasi otomatis membuat fallback editorial lokal dari data monitoring agar tidak abort.</div>
+          </section>
+          <section class="panel output-panel">
+            <div class="panel-head"><div><p class="eyebrow">Preview</p><h3>Draft Rilis</h3></div><button class="ghost mini" id="copyReleaseBtn">Copy</button></div>
+            <div class="score-ring"><span id="releaseScore">0%</span></div>
+            <h2 id="releaseTitle">Isi form untuk membuat rilis</h2>
+            <p id="releaseLead" class="lead">Lead akan muncul di sini.</p>
+            <pre id="releaseBody">Body berita akan muncul di sini.</pre>
+            <h3>Checklist 5W+1H</h3><div id="releaseChecklist" class="checklist"></div>
+            <h3>AI Optimization Output</h3><div id="aiWriterOutput" class="ai-writer-output result-box">Belum ada output AI.</div>
+          </section>
+        </div>
+      </section>
+
+      <section id="hoax" class="tab">
+        <div class="grid-2">
+          <section class="panel form-panel">
+            <div class="panel-head"><div><p class="eyebrow">Fact-check desk</p><h3>Cek Hoaks & Klaim Viral</h3></div><span class="badge warn">Verification</span></div>
+            <label>Klaim / narasi yang ingin dicek<textarea id="hoaxQuery" placeholder="Tempel klaim dari WhatsApp, media sosial, judul berita, atau narasi viral"></textarea></label>
+            <button class="primary btn-gradient-orange" id="runHoax">Cek Sekarang</button>
+            <div class="hint-card"><strong>Mode verifikasi terbuka:</strong> aplikasi mencari bukti terbuka dari RSS, GDELT, dan sumber publik lain untuk menandai sinyal hoaks. Isi Google Fact Check API key atau MAFINDO key jika ingin hasil database cek fakta langsung.</div>
+          </section>
+          <section class="panel output-panel">
+            <div class="panel-head"><h3>Hasil Cek</h3><button class="ghost mini" id="copyHoax">Copy</button></div>
+            <div id="hoaxResult" class="result-box">Belum ada klaim yang dicek.</div>
+          </section>
+        </div>
+        <section class="panel"><div class="panel-head"><h3>Bukti / Referensi Terbuka</h3><span class="badge">Klik untuk cek sumber</span></div><div id="evidenceList" class="cards"></div></section>
+      </section>
+
+      <section id="converter" class="tab">
+        <div class="grid-2">
+          <section class="panel form-panel">
+            <div class="panel-head"><div><p class="eyebrow">Data converter</p><h3>Apify / Social X / Scraper Export</h3></div><span class="badge good">CSV/JSON</span></div>
+            <label>Jenis sumber<select id="uploadSource"><option value="apify">Apify Dataset</option><option value="socialx">Social X Export</option><option value="x-export">X/Twitter Export</option><option value="instagram-export">Instagram Export</option><option value="linkedin-export">LinkedIn Export</option><option value="rss-export">RSS Export</option><option value="custom">Custom Scraper</option></select></label>
+            <label>Upload file CSV/JSON<input id="uploadFile" type="file" accept=".json,.csv,application/json,text/csv" /></label>
+            <button class="primary btn-gradient-purple" id="uploadBtn">Convert & Analyze</button>
+            <hr />
+            <label>Ambil Apify Dataset publik langsung<input id="datasetId" placeholder="Dataset ID Apify" /></label>
+            <button class="ghost" id="fetchDataset">Fetch Public Dataset</button>
+          </section>
+          <section class="panel output-panel">
+            <div class="panel-head"><h3>Hasil Konversi</h3><div class="button-row"><button class="ghost mini" id="exportJson">Export JSON</button><button class="ghost mini" id="exportCsv">Export CSV</button></div></div>
+            <div id="convertSummary" class="summary-box">Belum ada file di-convert.</div>
+          </section>
+        </div>
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Context of Data</p><h3>Word Cloud Hasil Scraper</h3></div><span class="badge">otomatis</span></div><div id="dataWordCloud" class="wordcloud-box"><p class="muted">Belum ada data.</p></div></section>
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Normalized data</p><h3>Preview Data Normalized</h3></div><span class="badge">10 data/halaman</span></div><div class="data-tools"><input id="dataSearch" placeholder="Cari data hasil scraper..." /><select id="dataSourceFilter"><option value="all">Semua sumber</option></select><select id="dataSentimentFilter"><option value="all">Semua sentimen</option><option value="positif">Positif</option><option value="netral">Netral</option><option value="negatif">Negatif</option></select><select id="dataSort"><option value="latest">Terbaru</option><option value="viral">Viral tertinggi</option><option value="engagement">Engagement</option></select></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Source</th><th>Author</th><th>Date</th><th>Sentimen</th><th>Text</th><th>Metrics</th></tr></thead><tbody id="dataTable"><tr><td colspan="7">Belum ada data</td></tr></tbody></table></div><div id="dataPager" class="pager"></div></section>
+      </section>
+
+      <section id="hints" class="tab">
+        <div class="hints-grid">
+          <article class="hint-panel"><span>1</span><h3>Mulai dari query yang spesifik</h3><p>Gunakan nama lembaga, tokoh, lokasi, dan isu. Contoh: <code>banjir Jakarta Selatan</code>, <code>kurikulum digital</code>, atau <code>harga beras</code>.</p></article>
+          <article class="hint-panel"><span>2</span><h3>Pilih sumber sesuai kebutuhan</h3><p>GDELT/RSS untuk berita, Bluesky untuk percakapan sosial publik, Hacker News untuk isu teknologi, Apify/Social X untuk data hasil scraper. GDELT memakai cache otomatis; jangan refresh manual berulang-ulang dalam beberapa detik.</p></article>
+          <article class="hint-panel"><span>3</span><h3>Baca alert negatif sebagai sinyal awal</h3><p>Sentimen negatif bukan otomatis buruk atau hoaks. Gunakan sebagai prioritas follow-up, lalu verifikasi ke narasumber primer.</p></article>
+          <article class="hint-panel"><span>4</span><h3>Gunakan report untuk rapat redaksi</h3><p>Buka tab Analytics Report, cek top viral, domain dominan, rekomendasi redaksi, lalu download HTML report seperti dashboard Hootsuite.</p></article>
+          <article class="hint-panel"><span>5</span><h3>Cek hoaks sebelum publikasi</h3><p>Tempel klaim viral di tab Cek Hoaks. Sistem memberi bukti terbuka, sinyal risiko, dan checklist verifikasi.</p></article>
+          <article class="hint-panel"><span>6</span><h3>Konversi hasil scraper</h3><p>Upload CSV/JSON dari Apify atau Social X. Aplikasi menormalkan kolom seperti text, url, author, createdAt, likes, comments, shares, dan views.</p></article>
+        </div>
+        <section class="panel sop">
+          <h3>SOP cepat untuk jurnalis</h3>
+          <ol>
+            <li>Scan isu selama 60 detik atau lebih untuk memetakan narasi awal dan menghindari rate limit API publik.</li>
+            <li>Ambil 3 konten viral teratas sebagai bahan angle dan kontra-angle.</li>
+            <li>Gunakan keyword dominan untuk mencari dokumen, data primer, dan narasumber.</li>
+            <li>Jalankan cek hoaks pada klaim paling sensitif.</li>
+            <li>Tulis rilis/berita dengan 5W+1H, lalu lampirkan ringkasan analitik ke editor.</li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="settings" class="tab">
+        <div class="settings-grid">
+          <div class="panel settings-panel profile-panel">
+            <div class="panel-head"><div><p class="eyebrow">Account profile</p><h3>Profil Pemilik Akun</h3></div><span class="badge good">Editable</span></div>
+            <p class="muted">Nama ini tampil di topbar, report, footer metadata, dan file ekspor.</p>
+            <label>Nama profil pemilik akun<input id="profileOwnerName" placeholder="Contoh: Setyohadi Wiratmoko" /></label>
+            <label>Jabatan / role<input id="profileOwnerRole" placeholder="Contoh: Editor-in-Chief" /></label>
+            <div class="button-row"><button class="primary btn-gradient-green" id="saveProfileBtn" type="button">Simpan Profil</button><button class="ghost" id="resetProfileBtn" type="button">Reset</button></div>
+          </div>
+
+          <div class="panel settings-panel superadmin-panel">
+            <div class="panel-head"><div><p class="eyebrow">Superadmin</p><h3>Pengaturan Password Demo & Paket</h3></div><span class="badge warn">Superadmin only</span></div>
+            <p class="muted">Login memakai password superadmin untuk membuat password demo 3 hari dan paket 7/30/60/90 hari serta 1 tahun. Password disimpan di server lokal/hosting, bukan di browser.</p>
+            <div class="license-grid">
+              <label>Demo 3 hari
+                <div class="password-wrap"><input id="newDemoPassword" type="password" autocomplete="new-password" placeholder="Password demo" /><button type="button" class="reveal-btn" data-target="newDemoPassword">👁</button></div>
+              </label>
+              <label>Paket 7 hari
+                <div class="password-wrap"><input id="package7Password" type="password" autocomplete="new-password" placeholder="Password 7 hari" /><button type="button" class="reveal-btn" data-target="package7Password">👁</button></div>
+              </label>
+              <label>Paket 30 hari
+                <div class="password-wrap"><input id="package30Password" type="password" autocomplete="new-password" placeholder="Password 30 hari" /><button type="button" class="reveal-btn" data-target="package30Password">👁</button></div>
+              </label>
+              <label>Paket 60 hari
+                <div class="password-wrap"><input id="package60Password" type="password" autocomplete="new-password" placeholder="Password 60 hari" /><button type="button" class="reveal-btn" data-target="package60Password">👁</button></div>
+              </label>
+              <label>Paket 90 hari
+                <div class="password-wrap"><input id="package90Password" type="password" autocomplete="new-password" placeholder="Password 90 hari" /><button type="button" class="reveal-btn" data-target="package90Password">👁</button></div>
+              </label>
+              <label>Paket 1 tahun
+                <div class="password-wrap"><input id="package365Password" type="password" autocomplete="new-password" placeholder="Password 1 tahun" /><button type="button" class="reveal-btn" data-target="package365Password">👁</button></div>
+              </label>
+            </div>
+            <div class="button-row"><button class="primary btn-gradient-orange" id="savePasswordsBtn" type="button">Simpan Password Paket</button><button class="ghost" id="checkPasswordStatusBtn" type="button">Cek Status</button></div>
+            <div id="passwordStatus" class="summary-box small-status">Belum dicek.</div>
+          </div>
+
+          <div class="panel settings-panel">
+            <div class="panel-head"><div><p class="eyebrow">Optional keys</p><h3>Pengaturan API Gratis Opsional</h3></div><span class="badge">Browser local only</span></div>
+            <p class="muted">Aplikasi tetap bisa berjalan tanpa key untuk sumber utama. Key opsional hanya untuk memperkaya cek hoaks atau dataset privat.</p>
+            <label>Google Fact Check API Key
+              <div class="password-wrap"><input id="factKey" type="password" placeholder="Opsional" /><button type="button" class="reveal-btn" data-target="factKey">👁</button></div>
+            </label>
+            <label>MAFINDO / TurnBackHoax API Key
+              <div class="password-wrap"><input id="mafindoKey" type="password" placeholder="Opsional" /><button type="button" class="reveal-btn" data-target="mafindoKey">👁</button></div>
+            </label>
+            <label>Apify Token
+              <div class="password-wrap"><input id="apifyToken" type="password" placeholder="Opsional untuk dataset privat" /><button type="button" class="reveal-btn" data-target="apifyToken">👁</button></div>
+            </label>
+          </div>
+
+          <div class="panel settings-panel ai-panel">
+            <div class="panel-head"><div><p class="eyebrow">AI provider</p><h3>Pengaturan AI Tools &amp; API</h3></div><span class="badge warn" id="aiAccessBadge">Locked</span></div>
+            <div class="ai-lock-banner" data-ai-lock><strong>🔒 Pengaturan AI hanya untuk Superadmin</strong><span>Unlock dengan password superadmin sebelum mengubah API key, model, atau test koneksi.</span><button class="primary mini btn-gradient-orange" type="button" data-open-ai-unlock>Unlock AI Settings</button></div>
+            <p class="muted">Isi API key AI Tools untuk membuat insight redaksi AI, ringkasan rapat, dan pengayaan draft. Default endpoint mengikuti format OpenAI-compatible.</p>
+            <div class="form-grid ai-model-grid">
+              <label>Base URL<input id="sumopodBaseUrl" value="https://ai.sumopod.com/v1" placeholder="https://ai.sumopod.com/v1" /></label>
+              <label>Model AI
+                <select id="sumopodModel">
+                  <option value="claude-opus-4-8">claude-opus-4-8</option>
+                  <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+                  <option value="gemini">gemini</option>
+                  <option value="kimi">kimi</option>
+                  <option value="mimo-v2.5-pro">mimo-v2.5-pro</option>
+                  <option value="qwen">qwen</option>
+                  <option value="custom">Custom model...</option>
+                </select>
+              </label>
+            </div>
+            <label id="customModelWrap" class="custom-model-wrap hidden">Nama model custom
+              <input id="sumopodCustomModel" placeholder="Contoh: gpt-4o-mini, llama-3.1, model-private" />
+            </label>
+            <div class="model-chip-row" aria-label="Pilihan cepat model AI Tools">
+              <button type="button" data-model="claude-opus-4-8" class="active">claude-opus-4-8</button><button type="button" data-model="deepseek-v4-pro">deepseek-v4-pro</button><button type="button" data-model="gemini">gemini</button><button type="button" data-model="kimi">kimi</button><button type="button" data-model="mimo-v2.5-pro">mimo-v2.5-pro</button><button type="button" data-model="qwen">qwen</button><button type="button" data-model="custom">Custom</button>
+            </div>
+            <label>AI Tools API Key
+              <div class="password-wrap"><input id="sumopodKey" type="password" placeholder="Masukkan API key AI Tools" /><button type="button" class="reveal-btn" data-target="sumopodKey">👁</button></div>
+            </label>
+            <label>Prompt test<textarea id="sumopodPrompt" placeholder="Contoh: Buat ringkasan isu pendidikan digital untuk rapat redaksi.">Buat satu insight redaksi singkat tentang isu pendidikan digital.</textarea></label>
+            <div class="button-row"><button type="button" class="primary btn-gradient-purple" id="testSumopodBtn" onclick="window.NewsroomApp?.testAiTools?.(event)">Test AI Tools</button><button type="button" class="ghost" id="copySumopodBtn">Copy Hasil</button></div>
+            <div id="sumopodResult" class="summary-box">Belum dites.</div>
+          </div>
+
+          <div class="panel settings-panel wide-settings">
+            <div class="panel-head"><div><p class="eyebrow">Storage</p><h3>Simpan Pengaturan</h3></div><span class="badge">Local browser</span></div>
+            <label class="check"><input id="rememberKeys" type="checkbox" /> Simpan key di browser ini</label>
+            <div class="button-row"><button type="button" class="primary btn-gradient-blue" id="saveKeysBtn" onclick="window.NewsroomApp?.saveKeys?.(event)">Simpan Settings</button><button type="button" class="ghost danger" id="clearKeysBtn">Hapus Settings</button></div>
+            <p class="muted small-note">Untuk produksi, jangan memakai password statis. Ganti DEMO_PASSWORD, FULL_PASSWORD, dan AUTH_SECRET di file .env.</p>
+          </div>
+        </div>
+      </section>
+      <footer class="app-footer">(c)2020-2026. Newsroom Intelligence. Rumah Edukasi Digital. Allright Reserved.</footer>
+    </main>
+  </div>
+  <div id="aiUnlockModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Verifikasi superadmin untuk AI">
+    <div class="unlock-card">
+      <div class="panel-head"><div><p class="eyebrow">Superadmin verification</p><h3>Unlock AI Settings</h3></div><button class="icon-tool" id="closeAiUnlock" type="button">×</button></div>
+      <p class="muted">Masukkan password superadmin untuk mengaktifkan pengaturan AI selama 30 menit.</p>
+      <label>Password superadmin
+        <div class="password-wrap"><input id="aiUnlockPassword" type="password" autocomplete="current-password" /><button type="button" class="reveal-btn" data-target="aiUnlockPassword">👁</button></div>
+      </label>
+      <div class="button-row"><button class="primary btn-gradient-orange" id="verifyAiUnlock" type="button">Verifikasi</button><button class="ghost" id="cancelAiUnlock" type="button">Batal</button></div>
+      <div id="aiUnlockMessage" class="summary-box small-status">AI settings masih terkunci.</div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="/app.js" type="module"></script>
+
+<div id="chartDetailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Detail data grafik">
+  <div class="unlock-card chart-detail-card">
+    <div class="panel-head slim"><h3 id="chartDetailTitle">Detail Data Grafik</h3><button id="closeChartDetail" class="icon-tool" type="button">×</button></div>
+    <p id="chartDetailSubtitle" class="muted">Klik titik atau elemen grafik untuk melihat data yang mendasari angka tersebut.</p>
+    <div id="chartDetailMeta" class="detail-meta"></div>
+    <div id="chartDetailList" class="detail-list"><p class="muted">Belum ada data.</p></div>
+  </div>
+</div>
+<div id="chartTooltip" class="chart-tooltip hidden" role="status"></div>
+</body>
+</html>
